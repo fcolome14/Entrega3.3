@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 		printf ("\nEscribe el nombre del jugador para ver su estadística:\n"); 
 		scanf ("%s", nombre);
 		// construimos la consulta SQL
-		sprintf (consulta,"SELECT (win_games/total_games)*100 FROM PLAYER WHERE USERNAME= '%s' ",nombre); 
+		sprintf (consulta,"SELECT SUM(GAME.DURATION) FROM (PLAYER,GAME,BRIDGE) WHERE USERNAME= '%s' AND PLAYER.ID=BRIDGE.ID_PLY2 AND BRIDGE.ID_GA=GAME.ID",nombre); 
 		// hacemos la consulta 
 		err=mysql_query (conn, consulta); 
 		if (err!=0) {
@@ -81,10 +81,12 @@ int main(int argc, char **argv)
 		if (row == NULL)
 			printf ("No se han obtenido datos en la consulta\n");
 		else
-			// El resultado debe ser una matriz con una sola fila
-			// y una columna que contiene el nombre
-			printf ("Hasta ahora %s ha ganado el: %s%% de partidas jugadas\n", nombre,row[0] );
-		// cerrar la conexion con el servidor MYSQL 
+			while (row !=NULL) {
+				// las columnas 0 y 1 contienen DNI y nombre 
+				printf ("%s ha jugado un total de %s minutos como jugador 2\n", nombre,row[0]);
+				// obtenemos la siguiente fila
+				row = mysql_fetch_row (resultado);
+		}
 		mysql_close (conn);
 		exit(0);
 }
